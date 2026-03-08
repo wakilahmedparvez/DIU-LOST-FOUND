@@ -27,9 +27,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# -----------------------
+
 # MODELS
-# -----------------------
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -101,12 +101,12 @@ class Story(db.Model):
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
-# -----------------------
-# ✅ SIMPLE ADMIN SYSTEM (NO DB CHANGE)
-# -----------------------
+
+# SIMPLE ADMIN SYSTEM (NO DB CHANGE)
+
 ADMIN_EMAILS = {
-    "admin@diu.edu.bd",  # <-- এখানে তোমার admin email বসাও
-    # "your_email@gmail.com",
+    "admin@diu.edu.bd",  
+    
 }
 
 def require_admin():
@@ -115,16 +115,16 @@ def require_admin():
     if current_user.email not in ADMIN_EMAILS:
         abort(403)
 
-# -----------------------
-# ROUTES
-# -----------------------
 
-# ✅ Landing page
+# ROUTES
+
+
+#  Landing page
 @app.route('/')
 def get_started():
     return render_template("get_started.html")
 
-# ❌ Duplicate "/" route remove করা হয়েছে
+
 # @app.route('/')
 # def index():
 #     return render_template('index.html')
@@ -333,9 +333,9 @@ def chat(user_id):
     all_messages = sent.union(received).order_by(Message.timestamp.asc()).all()
     return render_template('chat.html', user=user, messages=all_messages)
 
-# -----------------------
-# ✅ ADMIN ROUTES (NEW) 
-# -----------------------
+
+# ADMIN ROUTES (NEW) 
+
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
@@ -394,9 +394,9 @@ def admin_delete_comment(comment_id):
     flash("Comment deleted.")
     return redirect(url_for('admin_reports'))
 
-# -----------------------
+
 # AUTH
-# -----------------------
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
