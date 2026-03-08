@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Get Started — Lost & Found{% endblock %}
+{% block content %}
+
+<!-- Hero Section -->
+<section class="py-5 text-center text-white"
+         style="background: linear-gradient(135deg, #388c73, #f2cc10);">
+  <div class="container">
+    <h1 class="display-4 fw-bold animate__animated animate__fadeInDown">
+      Welcome to Our DIU Lost & Found Website
+    </h1>
+
+    <p class="lead animate__animated animate__fadeInUp">
+      DIU Lost & Found is a secure campus platform designed to facilitate the recovery of lost belongings.
+      Users can post detailed lost or found listings with photos and location information.
+      The system enables efficient searching, filtering, and direct communication between users.
+      Our goal is to reunite items with their rightful owners quickly and reliably.
+      <br>
+      Join the DIU community and contribute to a safer, more connected campus.
+    </p>
+  </div>
+</section>
+
+<!-- ======================================= -->
+<!-- HOW IT WORKS + WHY CHOOSE US BACKGROUND -->
+<!-- ======================================= -->
+<section
+  class="py-5 text-center"
+  style="
+    background:
+      linear-gradient(rgba(255,255,255,0.20), rgba(255,255,255,0.20)),
+      url('{{ url_for('static', filename='images/1719679319.jpeg') }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  "
+
+  <!-- How It Works Section -->
+  <div class="container mb-5">
+    <h2 class="mb-5 fw-bold">How It Works</h2>
+
+    <div class="row g-4">
+      {% set steps = [
+      {
+        'icon': 'file-earmark-plus',
+        'title': 'Submit with Proof',
+        'text': 'Students post lost or found items with images and campus location.',
+        'color': 'primary'
+      },
+      {
+        'icon': 'gear',
+        'title': 'System Organizes',
+        'text': 'The system categorizes items and prepares them for quick searching.',
+        'color': 'success'
+      },
+      {
+        'icon': 'search',
+        'title': 'Smart Discovery',
+        'text': 'Other students find items using filters, categories, or map view.',
+        'color': 'warning'
+      },
+    ] %}
+
+
+      {% for step in steps %}
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100 p-4 hover-zoom">
+          <div class="mb-3">
+            <i class="bi bi-{{ step.icon }} fs-1 text-primary"></i>
+          </div>
+          <h4 class="fw-semibold">{{ step.title }}</h4>
+          <p class="text-muted">{{ step.text }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Why Choose Us Section -->
+  <div class="container">
+    <h2 class="mb-5 fw-bold">Why Choose Us?</h2>
+
+    <div class="row g-4">
+     {% set features = [
+  {
+    'icon': 'building',
+    'title': 'DIU-Campus Focused System',
+    'text': 'Built exclusively for DIU students with familiar campus locations and a student-to-student helping environment.',
+    'color': 'primary'
+  },
+  {
+    'icon': 'grid-1x2',
+    'title': 'Centralized Platform',
+    'text': 'Lost, Found, Stories, and Inbox are organized in one place instead of scattered social media posts.',
+    'color': 'success'
+  },
+  {
+    'icon': 'lightning-charge',
+    'title': 'Faster Recovery',
+    'text': 'Quick posting, instant search, and direct messaging help recover items in less time.',
+    'color': 'warning'
+  },
+  {
+    'icon': 'person-lock',
+    'title': 'Privacy First',
+    'text': 'Users do not need to share phone numbers or emails publicly. All communication happens securely inside the system.',
+    'color': 'danger'
+  },
+  {
+    'icon': 'people',
+    'title': 'Community Trust & Honesty',
+    'text': 'Success stories and responsible reporting encourage honesty and build trust among DIU students.',
+    'color': 'primary'
+  },
+  {
+    'icon': 'clock-history',
+    'title': 'Time-Saving Experience',
+    'text': 'Structured listings and filters save time compared to scrolling through social media posts.',
+    'color': 'warning'
+  },
+  {
+    'icon': 'check2-circle',
+    'title': 'Real & Working System',
+    'text': 'A fully implemented system with real database and user interaction, not just a concept.',
+    'color': 'danger'
+  },
+  {
+    'icon': 'brightness-high',
+    'title': 'Dark Mode Support',
+    'text': 'Switch between light and dark mode for comfortable viewing at any time.',
+    'color': 'success'
+  }
+] %}
+
+
+      {% for f in features %}
+      <div class="col-md-3 col-sm-6">
+        <div class="p-4 bg-white shadow-sm rounded hover-zoom">
+          <i class="bi bi-{{ f.icon }} fs-1 text-{{ f.color }}"></i>
+          <h5 class="mt-3">{{ f.title }}</h5>
+          <p class="text-muted small">{{ f.text }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</section>
+
+<!-- Stories Banner -->
+<section class="bg-dark text-light py-5 text-center">
+  <div class="container">
+    <h2 class="fw-bold animate__animated animate__fadeIn">
+      Helping the DIU Community Reconnect
+    </h2>
+    <p class="lead">
+      A dedicated platform where DIU students help each other recover lost belongings.
+    </p>
+    <a href="{{ url_for('stories') }}"
+       class="btn btn-outline-light btn-lg mt-3">
+      📖 Read Success Stories
+    </a>
+  </div>
+</section>
+
+<!-- Call To Action -->
+<section class="py-5 text-center"
+         style="background: linear-gradient(135deg, #10f2e3, #6f42c1); color: white;">
+  <div class="container">
+    <h2 class="fw-bold animate__animated animate__fadeInUp">
+      Ready to Get Started?
+    </h2>
+    <p class="lead">
+      Join our community today and help bring people back to their belongings.
+    </p>
+    <a href="{{ url_for('post_lost') }}"
+       class="btn btn-light btn-lg mt-3 shadow animate__animated animate__pulse">
+      🚀 Sign In Now
+      </a>
+
+    <a href="{{ url_for('register') }}"
+       class="btn btn-light btn-lg shadow-sm animate__animated animate__pulse">
+      📝 Sign Up Now
+    </a>
+  </div>
+</section>
+
+{% endblock %}
+
