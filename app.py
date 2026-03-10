@@ -235,10 +235,10 @@ def post_lost():
             flash('No image selected!')
             return redirect(request.url)
         filename = secure_filename(image.filename)
-        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) #server e save hbe
         lost_item = LostItem(title=title, description=description, category=category,
-                             location=location, image=filename, user_id=current_user.id)
-        db.session.add(lost_item)
+                             location=location, image=filename, user_id=current_user.id) #DB Object
+        db.session.add(lost_item)  #parmanent data save
         db.session.commit()
         flash('Lost item posted successfully!')
         return redirect(url_for('home'))
