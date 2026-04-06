@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,7 +9,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Ensure instance folder exists and use an absolute SQLite path (prevents Windows unzip/path issues)
+# Ensure instance folder exists and use an absolute SQLite path
 os.makedirs(app.instance_path, exist_ok=True)
 db_path = os.path.join(app.instance_path, 'lost_and_found.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
@@ -27,9 +28,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-
+# -----------------------
 # MODELS
-
+# -----------------------
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -67,6 +68,10 @@ class Comment(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     lost_item_id = db.Column(db.Integer, db.ForeignKey('lost_item.id'))
     found_item_id = db.Column(db.Integer, db.ForeignKey('found_item.id'))
+    # FB-style reply: parent comment id (NULL = top-level comment)
+    parent_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=True, default=None)
+
+    replies = db.relationship('Comment', backref=db.backref('parent', remote_side='Comment.id'), lazy='dynamic')
 
 class LostItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -96,17 +101,35 @@ class Story(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     user = db.relationship('User')
 
+# -----------------------
+# NOTIFICATION MODEL
+# type: 'message' | 'comment' | 'lost_post' | 'found_post' | 'general'
+# -----------------------
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(255), nullable=False)
+    type = db.Column(db.String(30), default='general')
+    link = db.Column(db.String(200), default='/')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+# Report Model
+class Report(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer)
+    reason = db.Column(db.String(200))
+
 
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
 
-
-# SIMPLE ADMIN SYSTEM (NO DB CHANGE)
-
+# -----------------------
+# ADMIN SYSTEM
+# -----------------------
 ADMIN_EMAILS = {
-    "admin@diu.edu.bd",  
-    
+    "admin@diu.edu.bd",
 }
 
 def require_admin():
@@ -115,19 +138,21 @@ def require_admin():
     if current_user.email not in ADMIN_EMAILS:
         abort(403)
 
+# -----------------------
+# NOTIFICATION HELPER
+# -----------------------
+def create_notification(user_id, msg, notif_type='general', link='/'):
+    note = Notification(user_id=user_id, message=msg, type=notif_type, link=link)
+    db.session.add(note)
 
+
+# -----------------------
 # ROUTES
+# -----------------------
 
-
-#  Landing page
 @app.route('/')
 def get_started():
     return render_template("get_started.html")
-
-
-# @app.route('/')
-# def index():
-#     return render_template('index.html')
 
 @app.route('/about')
 def about():
@@ -136,10 +161,8 @@ def about():
 @app.route('/home')
 def home():
     q = request.args.get('q', '').strip()
-
     lost_query = LostItem.query
     found_query = FoundItem.query
-
     if q:
         lost_query = lost_query.filter(
             (LostItem.title.ilike(f"%{q}%")) |
@@ -151,20 +174,49 @@ def home():
             (FoundItem.title.ilike(f"%{q}%")) |
             (FoundItem.description.ilike(f"%{q}%"))
         )
-
     lost_items = lost_query.order_by(LostItem.date_lost.desc()).all()
     found_items = found_query.order_by(FoundItem.date_found.desc()).all()
     comments = Comment.query.order_by(Comment.timestamp.desc()).all()
     return render_template('index.html', lost=lost_items, found=found_items, comments=comments, q=q)
 
+@app.route('/search')
+def search():
+    q = request.args.get('q', '').strip()
+    lost_results = []
+    found_results = []
+    story_results = []
 
-# For viewing all shared stories
+    if q:
+        lost_results = LostItem.query.filter(
+            (LostItem.title.ilike(f"%{q}%")) |
+            (LostItem.description.ilike(f"%{q}%")) |
+            (LostItem.category.ilike(f"%{q}%")) |
+            (LostItem.location.ilike(f"%{q}%"))
+        ).order_by(LostItem.date_lost.desc()).all()
+
+        found_results = FoundItem.query.filter(
+            (FoundItem.title.ilike(f"%{q}%")) |
+            (FoundItem.description.ilike(f"%{q}%"))
+        ).order_by(FoundItem.date_found.desc()).all()
+
+        story_results = Story.query.filter(
+            (Story.title.ilike(f"%{q}%")) |
+            (Story.content.ilike(f"%{q}%"))
+        ).order_by(Story.timestamp.desc()).all()
+
+    total = len(lost_results) + len(found_results) + len(story_results)
+    return render_template('search.html',
+                           q=q,
+                           lost=lost_results,
+                           found=found_results,
+                           stories=story_results,
+                           total=total)
+
 @app.route('/stories')
 def stories():
     all_stories = Story.query.order_by(Story.timestamp.desc()).all()
     return render_template('stories.html', stories=all_stories)
 
-# For submitting a story (only for logged-in users)
 @app.route('/share_story', methods=['GET', 'POST'])
 @login_required
 def share_story():
@@ -173,6 +225,17 @@ def share_story():
         content = request.form['content']
         new_story = Story(title=title, content=content, user_id=current_user.id)
         db.session.add(new_story)
+        db.session.flush()
+
+        other_users = User.query.filter(User.id != current_user.id).all()
+        for u in other_users:
+            create_notification(
+                user_id=u.id,
+                msg=f"📖 {current_user.email} shared a new story: \"{title}\"",
+                notif_type='story',
+                link='/stories'
+            )
+
         db.session.commit()
         flash('Your story has been shared!')
         return redirect(url_for('stories'))
@@ -189,14 +252,21 @@ def submit_story():
     if request.method == 'POST':
         title = request.form['title']
         content = request.form['content']
-        user_id = current_user.id
-
-        new_story = Story(title=title, content=content, user_id=user_id)
+        new_story = Story(title=title, content=content, user_id=current_user.id)
         db.session.add(new_story)
+        db.session.flush()
+
+        other_users = User.query.filter(User.id != current_user.id).all()
+        for u in other_users:
+            create_notification(
+                user_id=u.id,
+                msg=f"📖 {current_user.email} posted a new story: \"{title}\"",
+                notif_type='story',
+                link='/stories_wall'
+            )
+
         db.session.commit()
-
         return redirect(url_for('stories_wall'))
-
     return render_template('submit_story.html')
 
 @app.route('/chatbot', methods=['POST'])
@@ -235,10 +305,21 @@ def post_lost():
             flash('No image selected!')
             return redirect(request.url)
         filename = secure_filename(image.filename)
-        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename)) #server e save hbe
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         lost_item = LostItem(title=title, description=description, category=category,
-                             location=location, image=filename, user_id=current_user.id) #DB Object
-        db.session.add(lost_item)  #parmanent data save
+                             location=location, image=filename, user_id=current_user.id)
+        db.session.add(lost_item)
+        db.session.flush()
+
+        other_users = User.query.filter(User.id != current_user.id).all()
+        for u in other_users:
+            create_notification(
+                user_id=u.id,
+                msg=f"🔍 {current_user.email} posted a new lost item: \"{title}\"",
+                notif_type='lost_post',
+                link='/home'
+            )
+
         db.session.commit()
         flash('Lost item posted successfully!')
         return redirect(url_for('home'))
@@ -259,6 +340,17 @@ def post_found():
         found_item = FoundItem(title=title, description=description,
                                image=filename, user_id=current_user.id)
         db.session.add(found_item)
+        db.session.flush()
+
+        other_users = User.query.filter(User.id != current_user.id).all()
+        for u in other_users:
+            create_notification(
+                user_id=u.id,
+                msg=f"✅ {current_user.email} reported a found item: \"{title}\"",
+                notif_type='found_post',
+                link='/home'
+            )
+
         db.session.commit()
         flash('Found item posted successfully!')
         return redirect(url_for('home'))
@@ -267,18 +359,64 @@ def post_found():
 @app.route('/add_comment/<item_type>/<int:item_id>', methods=['POST'])
 @login_required
 def add_comment(item_type, item_id):
-    content = request.form['content']
+    content = request.form.get('content', '').strip()
+    raw_parent_id = request.form.get('parent_id', '').strip()
     if not content:
         flash("Comment cannot be empty.")
         return redirect(url_for('home'))
 
-    comment = Comment(content=content, user_id=current_user.id)
+    # Resolve and validate parent_id
+    parent_id = None
+    parent_comment_obj = None
+    if raw_parent_id:
+        try:
+            candidate = int(raw_parent_id)
+            found_parent = db.session.get(Comment, candidate)
+            if found_parent:
+                parent_id = candidate
+                parent_comment_obj = found_parent
+        except (ValueError, TypeError):
+            pass
+
+    comment = Comment(
+        content=content,
+        user_id=current_user.id,
+        parent_id=parent_id
+    )
+
+    # Attach to the correct item
+    owner_id = None
     if item_type == 'lost':
         comment.lost_item_id = item_id
+        item = db.session.get(LostItem, item_id)
+        if item:
+            owner_id = item.user_id
     elif item_type == 'found':
         comment.found_item_id = item_id
+        item = db.session.get(FoundItem, item_id)
+        if item:
+            owner_id = item.user_id
 
     db.session.add(comment)
+
+    # ── Notify item owner only for TOP-LEVEL comments (not replies) ──
+    if not parent_id and owner_id and owner_id != current_user.id:
+        create_notification(
+            user_id=owner_id,
+            msg=f"💬 {current_user.email} commented on your {item_type} item.",
+            notif_type='comment',
+            link='/home'
+        )
+
+    # ── Notify parent commenter when someone replies to their comment ──
+    if parent_comment_obj and parent_comment_obj.user_id != current_user.id:
+        create_notification(
+            user_id=parent_comment_obj.user_id,
+            msg=f"↩️ {current_user.email} replied to your comment.",
+            notif_type='comment',
+            link='/home'
+        )
+
     db.session.commit()
     flash("Comment added!")
     return redirect(url_for('home'))
@@ -301,6 +439,14 @@ def send_message(item_type, item_id):
     msg = Message(content=content, sender_id=current_user.id, receiver_id=receiver.id,
                   item_type=item_type, item_id=item_id)
     db.session.add(msg)
+
+    create_notification(
+        user_id=receiver.id,
+        msg=f"📩 {current_user.email} sent you a message about your {item_type} item.",
+        notif_type='message',
+        link='/inbox'
+    )
+
     db.session.commit()
     flash('Your message has been sent!')
     return redirect(url_for('home'))
@@ -325,6 +471,14 @@ def chat(user_id):
         content = request.form['content']
         msg = Message(sender_id=current_user.id, receiver_id=user.id, content=content)
         db.session.add(msg)
+
+        create_notification(
+            user_id=user.id,
+            msg=f"📩 {current_user.email} sent you a message.",
+            notif_type='message',
+            link='/inbox'
+        )
+
         db.session.commit()
         return redirect(url_for('chat', user_id=user.id))
 
@@ -333,9 +487,9 @@ def chat(user_id):
     all_messages = sent.union(received).order_by(Message.timestamp.asc()).all()
     return render_template('chat.html', user=user, messages=all_messages)
 
-
-# ADMIN ROUTES (NEW) 
-
+# -----------------------
+# ADMIN ROUTES
+# -----------------------
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
@@ -394,9 +548,9 @@ def admin_delete_comment(comment_id):
     flash("Comment deleted.")
     return redirect(url_for('admin_reports'))
 
-
+# -----------------------
 # AUTH
-
+# -----------------------
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -436,7 +590,116 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
+# -----------------------
+# NOTIFICATION ROUTES
+# -----------------------
+
+@app.route('/notifications')
+@login_required
+def notifications():
+    notes = (Notification.query
+             .filter_by(user_id=current_user.id)
+             .order_by(Notification.created_at.desc())
+             .all())
+    for n in notes:
+        n.is_read = True
+    db.session.commit()
+    return render_template('notifications.html', notes=notes)
+
+@app.route('/notifications/count')
+@login_required
+def notifications_count():
+    count = Notification.query.filter_by(
+        user_id=current_user.id, is_read=False
+    ).count()
+    return jsonify({'count': count})
+
+@app.route('/notifications/recent')
+@login_required
+def notifications_recent():
+    try:
+        notes = (Notification.query
+                 .filter_by(user_id=current_user.id)
+                 .order_by(Notification.created_at.desc())
+                 .limit(8).all())
+        data = [{
+            'id': n.id,
+            'message': n.message,
+            'type': n.type or 'general',
+            'link': n.link or '/',
+            'is_read': n.is_read,
+            'created_at': n.created_at.strftime('%d %b, %I:%M %p') if n.created_at else 'Just now'
+        } for n in notes]
+        return jsonify(data)
+    except Exception:
+        return jsonify([])
+
+@app.route('/notifications/mark-read/<int:notif_id>', methods=['POST'])
+@login_required
+def mark_notification_read(notif_id):
+    note = Notification.query.get_or_404(notif_id)
+    if note.user_id == current_user.id:
+        note.is_read = True
+        db.session.commit()
+    return jsonify({'success': True, 'link': note.link})
+
+@app.route('/notifications/mark-all-read', methods=['POST'])
+@login_required
+def mark_all_notifications_read():
+    Notification.query.filter_by(user_id=current_user.id, is_read=False).update({'is_read': True})
+    db.session.commit()
+    return jsonify({'success': True})
+
+# Report Item
+@app.route('/report/<int:item_id>', methods=['GET', 'POST'])
+@login_required
+def report(item_id):
+    if request.method == 'POST':
+        reason = request.form['reason']
+        rep = Report(item_id=item_id, reason=reason)
+        db.session.add(rep)
+        db.session.commit()
+        return redirect(url_for('home'))
+    return render_template('report.html', item_id=item_id)
+
+
+def run_db_migrations():
+    """
+    পুরানো database-এ নতুন column গুলো যোগ করে।
+    Column আগে থেকে থাকলে error হবে না — ignore করা হয়।
+    """
+    with db.engine.connect() as conn:
+        # Add missing columns (safe to run multiple times)
+        column_migrations = [
+            "ALTER TABLE notification ADD COLUMN type VARCHAR(30) DEFAULT 'general'",
+            "ALTER TABLE notification ADD COLUMN link VARCHAR(200) DEFAULT '/'",
+            "ALTER TABLE notification ADD COLUMN created_at DATETIME",
+            "ALTER TABLE comment ADD COLUMN parent_id INTEGER REFERENCES comment(id)",
+        ]
+        for sql in column_migrations:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+            except Exception:
+                pass  # column already exists — skip
+
+        # Fix existing NULL values that would crash the notifications endpoint
+        fix_migrations = [
+            "UPDATE notification SET created_at = datetime('now') WHERE created_at IS NULL",
+            "UPDATE notification SET type = 'general' WHERE type IS NULL",
+            "UPDATE notification SET link = '/' WHERE link IS NULL",
+        ]
+        for sql in fix_migrations:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+            except Exception:
+                pass
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        run_db_migrations()
     app.run(debug=True)
+    
+
