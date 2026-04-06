@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Notifications – DIU Lost & Found{% endblock %}
+
+{% block content %}
+
+<style>
+/* ── Notifications page styles ───────────────────────────────── */
+.notif-page-card {
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.notif-page-header {
+    background: linear-gradient(135deg, #000, #1a1a1a);
+    color: #fff;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.notif-page-header h4 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.15s;
+}
+
+.notif-item:last-child { border-bottom: none; }
+
+.notif-item:hover { background: #f8f9ff; }
+
+/* Unread items */
+.notif-item.unread {
+    background: #eef4ff;
+    border-left: 4px solid #0d6efd;
+}
+.notif-item.unread:hover { background: #ddeeff; }
+
+/* Icon bubble */
+.notif-bubble {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.bubble-message   { background: #0d6efd; }
+.bubble-comment   { background: #198754; }
+.bubble-lost_post { background: #dc3545; }
+.bubble-found_post{ background: #fd7e14; }
+.bubble-story     { background: #6f42c1; }
+.bubble-general   { background: #6c757d; }
+
+.notif-body { flex: 1; }
+.notif-msg  { font-size: 0.9rem; color: #212529; line-height: 1.4; }
+.notif-time { font-size: 0.78rem; color: #6c757d; margin-top: 4px; }
+
+/* Unread badge pill */
+.unread-pill {
+    font-size: 0.7rem;
+    background: #0d6efd;
+    color: #fff;
+    border-radius: 20px;
+    padding: 2px 8px;
+    margin-left: auto;
+    flex-shrink: 0;
+    align-self: center;
+}
+
+/* Empty state */
+.notif-empty-page {
+    text-align: center;
+    padding: 60px 20px;
+    color: #aaa;
+}
+.notif-empty-page i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 10px;
+}
+.notif-empty-page p { font-size: 1rem; }
+</style>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7 col-md-9">
+
+    <div class="notif-page-card card">
+
+      <!-- Header -->
+      <div class="notif-page-header">
+        <h4><i class="bi bi-bell-fill me-2 text-danger"></i> Notifications</h4>
+        <span class="badge bg-danger rounded-pill">
+          {{ notes | selectattr('is_read', 'equalto', False) | list | length }} unread
+        </span>
+      </div>
+
+      <!-- Notification list -->
+      {% if notes %}
+        {% for n in notes %}
+        <div class="notif-item {{ 'unread' if not n.is_read else '' }}">
+
+          <!-- Icon bubble by type -->
+          <div class="notif-bubble bubble-{{ n.type }}">
+            {% if n.type == 'message' %}
+              <i class="bi bi-envelope-fill"></i>
+            {% elif n.type == 'comment' %}
+              <i class="bi bi-chat-dots-fill"></i>
+            {% elif n.type == 'lost_post' %}
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            {% elif n.type == 'found_post' %}
+              <i class="bi bi-check-circle-fill"></i>
+            {% elif n.type == 'story' %}
+              <i class="bi bi-book-fill"></i>
+            {% else %}
+              <i class="bi bi-bell-fill"></i>
+            {% endif %}
+          </div>
+
+          <!-- Message & timestamp -->
+          <div class="notif-body">
+            <div class="notif-msg">{{ n.message }}</div>
+            <div class="notif-time">
+              <i class="bi bi-clock me-1"></i>
+              {{ n.created_at.strftime('%d %b %Y, %I:%M %p') if n.created_at else 'Just now' }}
+            </div>
+          </div>
+
+          {% if not n.is_read %}
+            <span class="unread-pill">New</span>
+          {% endif %}
+
+        </div>
+        {% endfor %}
+
+      {% else %}
+        <!-- Empty state -->
+        <div class="notif-empty-page">
+          <i class="bi bi-bell-slash"></i>
+          <p class="fw-semibold">No notifications yet.</p>
+          <p class="small text-muted">
+            You'll be notified when someone messages you, comments on your item, or posts a new listing.
+          </p>
+          <a href="{{ url_for('home') }}" class="btn btn-dark btn-sm mt-2">Go to Home</a>
+        </div>
+      {% endif %}
+
+    </div><!-- /card -->
+
+    <!-- Back button -->
+    <div class="text-center mt-3">
+      <a href="{{ url_for('home') }}" class="btn btn-outline-dark btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Home
+      </a>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
