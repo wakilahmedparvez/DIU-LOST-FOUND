@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.search-hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 48px 0 36px;
+    margin-bottom: 36px;
+}
+.search-hero h1 { color: #fff; font-weight: 700; font-size: 2rem; }
+.search-hero p  { color: #adb5bd; font-size: 1rem; }
+
+.search-hero-form .form-control {
+    border-radius: 50px 0 0 50px;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1rem;
+    box-shadow: none;
+}
+.search-hero-form .btn {
+    border-radius: 0 50px 50px 0;
+    padding: 12px 28px;
+    font-weight: 600;
+    background: #e63946;
+    border: none;
+    color: #fff;
+}
+.search-hero-form .btn:hover { background: #c1121f; }
+
+/* Tabs */
+.result-tabs .nav-link {
+    font-weight: 600;
+    color: #495057;
+    border-radius: 12px 12px 0 0;
+    padding: 10px 22px;
+}
+.result-tabs .nav-link.active {
+    background: #0f3460;
+    color: #fff;
+    border-color: #0f3460;
+}
+
+/* Cards */
+.result-card {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    transition: transform .18s, box-shadow .18s;
+    overflow: hidden;
+}
+.result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+}
+.result-card img {
+    width: 100%;
+    height: 170px;
+    object-fit: cover;
+}
+.result-card .card-body { padding: 16px; }
+.result-card .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+.result-card .card-text  { font-size: 0.85rem; color: #6c757d; }
+
+.badge-lost  { background: #dc3545; }
+.badge-found { background: #198754; }
+.badge-story { background: #6f42c1; }
+
+/* highlight matched text */
+mark { background: #fff3cd; border-radius: 3px; padding: 0 2px; }
+
+/* empty state */
+.empty-state { text-align: center; padding: 60px 20px; color: #adb5bd; }
+.empty-state i { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+
+/* section heading */
+.section-heading {
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-left: 4px solid #0f3460;
+    padding-left: 12px;
+    margin: 28px 0 16px;
+}
+</style>
+
+<!-- Hero / Search Bar -->
+<div class="search-hero">
+  <div class="container text-center">
+    <h1><i class="bi bi-search me-2"></i>Search DIU Lost &amp; Found</h1>
+    <p class="mb-4">Search across Lost Items, Found Items and Stories all at once</p>
+    <form class="d-flex justify-content-center search-hero-form" action="{{ url_for('search') }}" method="get">
+      <input class="form-control" style="max-width:560px" type="search" name="q"
+             placeholder="Type a keyword, category or location…"
+             value="{{ q }}" autofocus>
+      <button type="submit"><i class="bi bi-search me-1"></i>Search</button>
+    </form>
+  </div>
+</div>
+
+<div class="container pb-5">
+
+  {% if q %}
+  <!-- Result summary -->
+  <p class="text-muted mb-1">
+    Showing <strong>{{ total }}</strong> result{{ 's' if total != 1 }} for
+    "<strong>{{ q }}</strong>"
+    &nbsp;—&nbsp;
+    <span class="text-danger">{{ lost|length }} Lost</span>,
+    <span class="text-success">{{ found|length }} Found</span>,
+    <span class="text-purple" style="color:#6f42c1">{{ stories|length }} Stories</span>
+  </p>
+  <hr>
+
+  {% if total == 0 %}
+    <div class="empty-state">
+      <i class="bi bi-search"></i>
+      <h5>No results found for "{{ q }}"</h5>
+      <p>Try different keywords or check your spelling.</p>
+    </div>
+
+  {% else %}
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs result-tabs mb-4" id="searchTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link {% if lost %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-lost" type="button">
+        <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> Lost
+        <span class="badge bg-danger ms-1">{{ lost|length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link {% if not lost and found %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-found" type="button">
+        <i class="bi bi-check-circle-fill text-success me-1"></i> Found
+        <span class="badge bg-success ms-1">{{ found|length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link {% if not lost and not found and stories %}active{% endif %}" data-bs-toggle="tab" data-bs-target="#tab-stories" type="button">
+        <i class="bi bi-book-fill me-1" style="color:#6f42c1"></i> Stories
+        <span class="badge ms-1" style="background:#6f42c1">{{ stories|length }}</span>
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- Lost Items Tab -->
+    <div class="tab-pane fade {% if lost %}show active{% endif %}" id="tab-lost">
+      {% if lost %}
+        <div class="row g-3">
+          {% for item in lost %}
+          <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="card result-card h-100">
+              {% if item.image %}
+                <img src="{{ url_for('uploaded_file', filename=item.image) }}"
+                     alt="{{ item.title }}"
+                     onerror="this.src='https://placehold.co/400x170?text=No+Image'">
+              {% else %}
+                <img src="https://placehold.co/400x170?text=No+Image" alt="No Image">
+              {% endif %}
+              <div class="card-body">
+                <span class="badge badge-lost mb-2">Lost</span>
+                <h6 class="card-title">{{ item.title }}</h6>
+                <p class="card-text">{{ item.description[:80] }}{% if item.description|length > 80 %}…{% endif %}</p>
+                {% if item.category %}
+                  <small class="text-muted"><i class="bi bi-tag me-1"></i>{{ item.category }}</small><br>
+                {% endif %}
+                {% if item.location %}
+                  <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ item.location }}</small>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state"><i class="bi bi-box-seam"></i><p>No lost items matched.</p></div>
+      {% endif %}
+    </div>
+
+    <!-- Found Items Tab -->
+    <div class="tab-pane fade {% if not lost and found %}show active{% endif %}" id="tab-found">
+      {% if found %}
+        <div class="row g-3">
+          {% for item in found %}
+          <div class="col-sm-6 col-md-4 col-lg-3">
+            <div class="card result-card h-100">
+              {% if item.image %}
+                <img src="{{ url_for('uploaded_file', filename=item.image) }}"
+                     alt="{{ item.title }}"
+                     onerror="this.src='https://placehold.co/400x170?text=No+Image'">
+              {% else %}
+                <img src="https://placehold.co/400x170?text=No+Image" alt="No Image">
+              {% endif %}
+              <div class="card-body">
+                <span class="badge badge-found mb-2">Found</span>
+                <h6 class="card-title">{{ item.title }}</h6>
+                <p class="card-text">{{ item.description[:80] }}{% if item.description|length > 80 %}…{% endif %}</p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state"><i class="bi bi-check-circle"></i><p>No found items matched.</p></div>
+      {% endif %}
+    </div>
+
+    <!-- Stories Tab -->
+    <div class="tab-pane fade {% if not lost and not found and stories %}show active{% endif %}" id="tab-stories">
+      {% if stories %}
+        <div class="row g-3">
+          {% for s in stories %}
+          <div class="col-md-6">
+            <div class="card result-card h-100 p-3">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge badge-story"><i class="bi bi-book-fill me-1"></i>Story</span>
+                <small class="text-muted">{{ s.timestamp.strftime('%d %b %Y') if s.timestamp else '' }}</small>
+              </div>
+              <h6 class="card-title">{{ s.title }}</h6>
+              <p class="card-text">{{ s.content[:120] }}{% if s.content|length > 120 %}…{% endif %}</p>
+              {% if s.user %}
+                <small class="text-muted mt-auto pt-2"><i class="bi bi-person me-1"></i>{{ s.user.email.split('@')[0] }}</small>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state"><i class="bi bi-book"></i><p>No stories matched.</p></div>
+      {% endif %}
+    </div>
+
+  </div><!-- /tab-content -->
+  {% endif %}
+
+  {% else %}
+  <!-- No query yet -->
+  <div class="empty-state">
+    <i class="bi bi-search"></i>
+    <h5>Type something to search</h5>
+    <p>Search lost items, found items, and stories all in one place.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+{% endblock %}
