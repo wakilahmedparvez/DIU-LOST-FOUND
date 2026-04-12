@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.msg-wrap { max-width: 680px; margin: 40px auto; padding: 0 16px 60px; }
+.msg-title { font-weight: 800; font-size: 1.5rem; color: #050505; margin-bottom: 6px; }
+.msg-sub   { color: #65676b; font-size: 0.9rem; margin-bottom: 24px; }
+body.dark .msg-title { color: #e4e6eb; }
+
+.search-bar {
+  width: 100%; background: #f0f2f5; border: none;
+  border-radius: 50px; padding: 11px 20px;
+  font-size: 0.92rem; outline: none; margin-bottom: 20px; display: block;
+}
+body.dark .search-bar { background: #3a3b3c; color: #e4e6eb; }
+
+.user-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 14px; border-radius: 12px;
+  transition: background .15s; margin-bottom: 2px;
+}
+.user-row:hover { background: #f0f2f5; }
+body.dark .user-row:hover { background: #3a3b3c; }
+
+.u-av {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: linear-gradient(135deg,#0f3460,#e63946);
+  color: #fff; font-weight: 700; font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; text-transform: uppercase; position: relative;
+}
+.u-av .dot {
+  position: absolute; bottom: 2px; right: 2px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: #31a24c; border: 2px solid #fff;
+}
+.u-info { flex: 1; min-width: 0; }
+.u-name { font-weight: 700; font-size: 0.92rem; color: #050505; }
+body.dark .u-name { color: #e4e6eb; }
+.u-email { font-size: 0.8rem; color: #65676b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-btn {
+  background: #e7f3ff; color: #0866ff; border: none;
+  border-radius: 50px; padding: 8px 18px;
+  font-size: 0.85rem; font-weight: 700; text-decoration: none;
+  transition: background .15s; flex-shrink: 0;
+}
+.chat-btn:hover { background: #cce4ff; color: #0866ff; }
+.empty-state { text-align: center; padding: 50px 20px; color: #adb5bd; }
+.empty-state i { font-size: 3rem; display: block; margin-bottom: 10px; }
+</style>
+
+<div class="msg-wrap">
+  <h2 class="msg-title"><i class="bi bi-chat-dots-fill text-primary me-2"></i>New Message</h2>
+  <p class="msg-sub">Select a person to start a real-time conversation.</p>
+
+  <input type="search" class="search-bar" id="userSearch"
+         placeholder="Search by name or email…">
+
+  <div id="userList">
+    {% if users %}
+      {% for u in users %}
+      <div class="user-row" data-name="{{ (u.name or u.email)|lower }}">
+        <div class="u-av">
+          {{ (u.name or u.email)[0] }}
+          {% if u.id in online_users %}<span class="dot"></span>{% endif %}
+        </div>
+        <div class="u-info">
+          <div class="u-name">{{ u.name or u.email.split('@')[0] }}</div>
+          <div class="u-email">{{ u.email }}</div>
+        </div>
+        <a href="{{ url_for('chat', user_id=u.id) }}" class="chat-btn">
+          <i class="bi bi-chat-fill me-1"></i>Chat
+        </a>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-people"></i>
+        <p>No other users registered yet.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.getElementById('userSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.user-row').forEach(row => {
+    row.style.display = row.dataset.name.includes(q) ? '' : 'none';
+  });
+});
+</script>
+{% endblock %}
