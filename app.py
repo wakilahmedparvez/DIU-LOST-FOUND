@@ -9,6 +9,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+
 # Ensure instance folder exists and use an absolute SQLite path
 os.makedirs(app.instance_path, exist_ok=True)
 db_path = os.path.join(app.instance_path, 'lost_and_found.db')
