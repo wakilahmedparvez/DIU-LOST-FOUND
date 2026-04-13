@@ -151,9 +151,8 @@ mark { background: #fff3cd; border-radius: 3px; padding: 0 2px; }
           <div class="col-sm-6 col-md-4 col-lg-3">
             <div class="card result-card h-100">
               {% if item.image %}
-                <img src="{{ url_for('uploaded_file', filename=item.image) }}"
-                     alt="{{ item.title }}"
-                     onerror="this.src='https://placehold.co/400x170?text=No+Image'">
+                <img src="{{ url_for('static', filename='uploads/' + item.image) }}"
+                     alt="{{ item.title }}" onerror="this.src='https://placehold.co/400x170?text=No+Image'">
               {% else %}
                 <img src="https://placehold.co/400x170?text=No+Image" alt="No Image">
               {% endif %}
@@ -185,9 +184,8 @@ mark { background: #fff3cd; border-radius: 3px; padding: 0 2px; }
           <div class="col-sm-6 col-md-4 col-lg-3">
             <div class="card result-card h-100">
               {% if item.image %}
-                <img src="{{ url_for('uploaded_file', filename=item.image) }}"
-                     alt="{{ item.title }}"
-                     onerror="this.src='https://placehold.co/400x170?text=No+Image'">
+                <img src="{{ url_for('static', filename='uploads/' + item.image) }}"
+                     alt="{{ item.title }}" onerror="this.src='https://placehold.co/400x170?text=No+Image'">
               {% else %}
                 <img src="https://placehold.co/400x170?text=No+Image" alt="No Image">
               {% endif %}
@@ -241,6 +239,10 @@ mark { background: #fff3cd; border-radius: 3px; padding: 0 2px; }
     <p>Search lost items, found items, and stories all in one place.</p>
   </div>
   {% endif %}
+
+</div>
+
+{% endblock %}
 
 </div>
 
