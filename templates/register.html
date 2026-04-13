@@ -1,29 +1,185 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5" style="max-width: 500px;">
-    <h2 class="mb-4 text-center">Create an Account</h2>
-    <form method="POST">
-        <div class="mb-3">
-            <label for="email" class="form-label">Email address</label>
-            <input type="email" name="email" id="email" class="form-control" required>
-        </div>
+<style>
+.auth-page {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #f0f2f5 0%, #e3eaf6 100%);
+  padding: 24px 16px;
+}
+body.dark .auth-page { background: linear-gradient(135deg,#18191a,#242526); }
 
-        <div class="mb-3">
-            <label for="phone" class="form-label">Phone Number</label>
-            <input type="text" name="phone" id="phone" class="form-control" placeholder="Phone Number" required>
-        </div>
+.auth-card {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+  padding: 36px 40px 28px; width: 100%; max-width: 450px;
+}
+body.dark .auth-card { background: #242526; }
 
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" name="password" id="password" class="form-control" required>
-        </div>
+.auth-logo { text-align: center; margin-bottom: 6px; }
+.auth-logo i { font-size: 2.5rem; color: #0866ff; }
+.auth-title {
+  text-align: center; font-weight: 900; font-size: 1.8rem;
+  color: #0866ff; margin-bottom: 2px;
+}
+.auth-subtitle {
+  text-align: center; color: #65676b; font-size: 0.9rem; margin-bottom: 22px;
+}
+body.dark .auth-subtitle { color: #b0b3b8; }
 
-        <button type="submit" class="btn btn-primary w-100">Register</button>
+.field-row { display: flex; gap: 10px; }
+.field-row .field-wrap { flex: 1; }
+
+.field-wrap { margin-bottom: 10px; }
+.auth-input {
+  width: 100%; border: 1.5px solid #ccd0d5;
+  border-radius: 8px; padding: 13px 14px;
+  font-size: 0.92rem; outline: none; transition: border .2s;
+  background: #fff; color: #050505; display: block;
+}
+body.dark .auth-input { background: #3a3b3c; border-color: #3a3b3c; color: #e4e6eb; }
+.auth-input:focus { border-color: #0866ff; box-shadow: 0 0 0 3px rgba(8,102,255,0.12); }
+.auth-input.is-invalid { border-color: #dc3545; }
+
+.field-error { font-size: 0.78rem; color: #dc3545; margin-top: 3px; }
+
+/* Password strength bar */
+.pw-bar-wrap { height: 4px; border-radius: 4px; background: #e4e6eb; margin-top: 5px; }
+.pw-bar { height: 4px; border-radius: 4px; width: 0; transition: width .25s, background .25s; }
+.pw-hint { font-size: 0.75rem; color: #65676b; margin-top: 3px; }
+body.dark .pw-hint { color: #b0b3b8; }
+
+.submit-btn {
+  width: 100%; background: #00a400; color: #fff; border: none;
+  border-radius: 8px; padding: 14px; font-size: 1.05rem;
+  font-weight: 700; cursor: pointer; transition: background .18s;
+  margin-top: 8px;
+}
+.submit-btn:hover { background: #008000; }
+
+.auth-divider { border: none; border-top: 1px solid #e4e6eb; margin: 18px 0; }
+body.dark .auth-divider { border-color: #3a3b3c; }
+
+.login-link-btn {
+  display: block; text-align: center;
+  background: #0866ff; color: #fff; border: none;
+  border-radius: 8px; padding: 12px; font-size: 0.95rem;
+  font-weight: 700; text-decoration: none; transition: background .18s;
+}
+.login-link-btn:hover { background: #0654d4; color: #fff; }
+
+.terms { font-size: 0.75rem; color: #65676b; text-align: center; margin-top: 12px; }
+body.dark .terms { color: #b0b3b8; }
+</style>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo"><i class="bi bi-search-heart-fill"></i></div>
+    <div class="auth-title">Create account</div>
+    <div class="auth-subtitle">Join DIU Lost &amp; Found — it's quick and easy.</div>
+
+    <form method="POST" action="{{ url_for('register') }}" novalidate id="regForm">
+
+      <!-- Name row -->
+      <div class="field-row">
+        <div class="field-wrap">
+          <input type="text" name="first_name" class="auth-input {% if errors.get('first_name') %}is-invalid{% endif %}"
+                 placeholder="First name" value="{{ form.get('first_name','') }}" required>
+          {% if errors.get('first_name') %}
+          <div class="field-error">{{ errors.first_name }}</div>
+          {% endif %}
+        </div>
+        <div class="field-wrap">
+          <input type="text" name="last_name" class="auth-input {% if errors.get('last_name') %}is-invalid{% endif %}"
+                 placeholder="Last name" value="{{ form.get('last_name','') }}" required>
+          {% if errors.get('last_name') %}
+          <div class="field-error">{{ errors.last_name }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="field-wrap">
+        <input type="email" name="email" id="regEmail"
+               class="auth-input {% if errors.get('email') %}is-invalid{% endif %}"
+               placeholder="Email address" value="{{ form.get('email','') }}" required>
+        {% if errors.get('email') %}
+        <div class="field-error">{{ errors.email }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Phone -->
+      <div class="field-wrap">
+        <input type="tel" name="phone"
+               class="auth-input"
+               placeholder="Mobile number (optional)" value="{{ form.get('phone','') }}">
+      </div>
+
+      <!-- Password -->
+      <div class="field-wrap">
+        <input type="password" name="password" id="regPw"
+               class="auth-input {% if errors.get('password') %}is-invalid{% endif %}"
+               placeholder="New password (min 8 characters)" required minlength="8">
+        <div class="pw-bar-wrap"><div class="pw-bar" id="pwBar"></div></div>
+        <div class="pw-hint" id="pwHint">Use at least 8 characters.</div>
+        {% if errors.get('password') %}
+        <div class="field-error">{{ errors.password }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Confirm password -->
+      <div class="field-wrap">
+        <input type="password" name="confirm_password" id="regPwC"
+               class="auth-input {% if errors.get('confirm_password') %}is-invalid{% endif %}"
+               placeholder="Confirm password" required>
+        {% if errors.get('confirm_password') %}
+        <div class="field-error">{{ errors.confirm_password }}</div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="submit-btn">Sign Up</button>
     </form>
 
-    <p class="mt-3 text-center">
-        Already have an account?
-        <a href="{{ url_for('login') }}">Login here</a>.
+    <p class="terms">
+      By clicking Sign Up you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
     </p>
+    <hr class="auth-divider">
+    <a href="{{ url_for('login') }}" class="login-link-btn">Already have an account? Log In</a>
+  </div>
 </div>
+
+<script>
+const pwInput  = document.getElementById('regPw');
+const pwcInput = document.getElementById('regPwC');
+const pwBar    = document.getElementById('pwBar');
+const pwHint   = document.getElementById('pwHint');
+
+const levels = [
+  { re: /.{4}/,   w: 25, color: '#dc3545', label: 'Too short'   },
+  { re: /.{8}/,   w: 50, color: '#fd7e14', label: 'Weak'        },
+  { re: /(?=.*[A-Z])(?=.*\d).{8}/, w: 75, color: '#ffc107', label: 'Medium' },
+  { re: /(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8}/, w: 100, color: '#198754', label: 'Strong' },
+];
+
+pwInput.addEventListener('input', function() {
+  const val = this.value;
+  let w = 0, color = '#e4e6eb', label = 'Use at least 8 characters.';
+  for (const lv of levels) {
+    if (lv.re.test(val)) { w = lv.w; color = lv.color; label = lv.label; }
+  }
+  pwBar.style.width = val ? w + '%' : '0';
+  pwBar.style.background = color;
+  pwHint.textContent = val ? label : 'Use at least 8 characters.';
+  pwHint.style.color = val ? color : '';
+});
+
+// Client-side confirm match hint
+pwcInput.addEventListener('input', function() {
+  if (pwInput.value && this.value && this.value !== pwInput.value) {
+    this.setCustomValidity('Passwords do not match.');
+  } else {
+    this.setCustomValidity('');
+  }
+});
+</script>
 {% endblock %}
