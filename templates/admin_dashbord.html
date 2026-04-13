@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="fw-bold mb-0">Admin Dashboard</h2>
+      <p class="text-muted mb-0">Manage Lost/Found posts and moderate stories.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-dark" href="{{ url_for('admin_reports') }}">Moderation Center</a>
+      <a class="btn btn-dark" href="{{ url_for('home') }}">Back to Home</a>
+    </div>
+  </div>
+
+  <h4 class="mt-4">Lost Posts</h4>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>ID</th><th>Title</th><th>Category</th><th>Location</th><th>Date</th><th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in lost %}
+        <tr>
+          <td>#{{ p.id }}</td>
+          <td>{{ p.title }}</td>
+          <td>{{ p.category }}</td>
+          <td>{{ p.location }}</td>
+          <td class="text-muted">{{ p.date_lost.strftime('%Y-%m-%d') }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('Delete this lost post?');"
+               href="{{ url_for('admin_delete_lost', item_id=p.id) }}">
+              Delete
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="mt-5">Found Posts</h4>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>ID</th><th>Title</th><th>Date</th><th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in found %}
+        <tr>
+          <td>#{{ p.id }}</td>
+          <td>{{ p.title }}</td>
+          <td class="text-muted">{{ p.date_found.strftime('%Y-%m-%d') }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('Delete this found post?');"
+               href="{{ url_for('admin_delete_found', item_id=p.id) }}">
+              Delete
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="mt-5">Stories (Moderation)</h4>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>ID</th><th>Title</th><th>User</th><th>Date</th><th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in stories %}
+        <tr>
+          <td>#{{ s.id }}</td>
+          <td>{{ s.title }}</td>
+          <td class="text-muted">User #{{ s.user_id }}</td>
+          <td class="text-muted">{{ s.timestamp.strftime('%Y-%m-%d') }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('Delete this story?');"
+               href="{{ url_for('admin_delete_story', story_id=s.id) }}">
+              Delete
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{% endblock %}
