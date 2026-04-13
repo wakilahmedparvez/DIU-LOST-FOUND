@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Moderation Center{% endblock %}
+{% block content %}
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="fw-bold mb-0">Moderation Center</h2>
+      <p class="text-muted mb-0">Monitor comments & messages for platform safety.</p>
+    </div>
+    <a class="btn btn-dark" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+  </div>
+
+  <h4 class="mt-4">Recent Comments</h4>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>ID</th><th>Comment</th><th>User</th><th>Date</th><th class="text-end">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in comments %}
+        <tr>
+          <td>#{{ c.id }}</td>
+          <td style="max-width:520px;">{{ c.content }}</td>
+          <td class="text-muted">User #{{ c.user_id }}</td>
+          <td class="text-muted">{{ c.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('Delete this comment?');"
+               href="{{ url_for('admin_delete_comment', comment_id=c.id) }}">
+              Delete
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="mt-5">Recent Messages</h4>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th>ID</th><th>Message</th><th>From</th><th>To</th><th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in messages %}
+        <tr>
+          <td>#{{ m.id }}</td>
+          <td style="max-width:520px;">{{ m.content }}</td>
+          <td class="text-muted">User #{{ m.sender_id }}</td>
+          <td class="text-muted">User #{{ m.receiver_id }}</td>
+          <td class="text-muted">{{ m.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{% endblock %}
