@@ -89,12 +89,182 @@
             color: #fff !important;
             text-decoration: underline;
         }
+
+        /* ═══════════════════════════════════════════════
+           NOTIFICATION BELL & DROPDOWN STYLES
+           ═══════════════════════════════════════════════ */
+
+        /* Bell button – transparent, white icon */
+        #notif-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.25rem;
+            position: relative;
+            padding: 4px 8px;
+            transition: color 0.2s;
+        }
+        #notif-btn:hover { color: #ff4d4d; }
+
+        /* Red badge showing unread count */
+        #notif-badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: #dc3545;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            border-radius: 50%;
+            min-width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            padding: 0 3px;
+            display: none;   /* hidden when count = 0 */
+            animation: badgeBounce 0.3s ease;
+        }
+
+        @keyframes badgeBounce {
+            0%   { transform: scale(0.5); }
+            60%  { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* Dropdown panel */
+        #notif-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            width: 340px;
+            max-height: 430px;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.12);
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+            z-index: 2050;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        /* Header row inside dropdown */
+        .notif-dd-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+            flex-shrink: 0;
+        }
+        .notif-dd-header span {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #111;
+        }
+        #mark-all-btn {
+            font-size: 0.78rem;
+            color: #0d6efd;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+        #mark-all-btn:hover { text-decoration: underline; }
+
+        /* Scrollable list */
+        #notif-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Single notification row */
+        .notif-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 11px 14px;
+            border-bottom: 1px solid #f3f3f3;
+            cursor: pointer;
+            transition: background 0.15s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .notif-row:hover { background: #f5f8ff; }
+
+        /* Unread rows get a blue left border + pale background */
+        .notif-row.unread {
+            background: #eef4ff;
+            border-left: 3px solid #0d6efd;
+        }
+        .notif-row.unread:hover { background: #ddeeff; }
+
+        /* Coloured icon bubble */
+        .notif-icon-bubble {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #fff;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .bubble-message  { background: #0d6efd; }
+        .bubble-comment  { background: #198754; }
+        .bubble-lost     { background: #dc3545; }
+        .bubble-found    { background: #fd7e14; }
+        .bubble-story    { background: #6f42c1; }
+        .bubble-general  { background: #6c757d; }
+
+        .notif-row-body  { flex: 1; }
+        .notif-row-msg   { font-size: 0.83rem; line-height: 1.35; color: #212529; }
+        .notif-row-time  { font-size: 0.72rem; color: #6c757d; margin-top: 3px; }
+
+        /* "New" dot for unread */
+        .notif-new-dot {
+            width: 8px;
+            height: 8px;
+            background: #0d6efd;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+
+        /* Footer link inside dropdown */
+        .notif-dd-footer {
+            text-align: center;
+            padding: 9px;
+            border-top: 1px solid #f0f0f0;
+            background: #fafafa;
+            flex-shrink: 0;
+        }
+        .notif-dd-footer a {
+            font-size: 0.8rem;
+            color: #0d6efd;
+            text-decoration: none;
+        }
+        .notif-dd-footer a:hover { text-decoration: underline; }
+
+        /* Empty state */
+        .notif-empty {
+            text-align: center;
+            padding: 30px 20px;
+            color: #aaa;
+            font-size: 0.88rem;
+        }
+        .notif-empty i { font-size: 2rem; display: block; margin-bottom: 6px; }
     </style>
 </head>
 
 <body id="page-body">
 
-<!-- Navbar -->
+<!-- ════════════════════════════════════════════════
+     NAVBAR
+     ════════════════════════════════════════════════ -->
 <nav class="navbar navbar-expand-lg sticky-top py-3 shadow-sm"
      style="background: linear-gradient(90deg, #000000, #1a1a1a);">
 
@@ -110,21 +280,20 @@
     <!-- Mobile Toggle -->
     <button class="navbar-toggler border-0" type="button"
             data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"
-            style="filter: invert(1);"></span>
+      <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
     </button>
 
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
       <!-- Search Bar -->
-      <form class="d-flex ms-lg-4 my-3 my-lg-0" action="{{ url_for('home') }}" method="get">
+      <form class="d-flex ms-lg-4 my-3 my-lg-0" action="{{ url_for('search') }}" method="get">
         <input class="form-control form-control-sm me-2" type="search" name="q"
                placeholder="Search items..." value="{{ request.args.get('q', '') }}" aria-label="Search">
-        <button class="btn btn-sm btn-outline-light" type="submit">Search</button>
+        <button class="btn btn-sm btn-outline-light" type="submit"><i class="bi bi-search me-1"></i>Search</button>
       </form>
 
       <ul class="navbar-nav align-items-center gap-3">
 
-        <!-- Links -->
+        <!-- Nav links -->
         <li class="nav-item">
           <a class="nav-link nav-animate" href="{{ url_for('about') }}">About</a>
         </li>
@@ -136,31 +305,76 @@
         </li>
 
         {% if current_user.is_authenticated %}
+
+        <!-- ── MESSAGES BUTTON ───────────────────────── -->
+        <li class="nav-item" style="position:relative;">
+          <a href="{{ url_for('inbox') }}" id="msg-btn" title="Messages"
+             style="width:38px;height:38px;border-radius:50%;background:#e7f3ff;
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:1.1rem;color:#0866ff;text-decoration:none;position:relative;">
+            <i class="bi bi-chat-fill"></i>
+            <span id="msg-badge" style="
+              display:none; position:absolute; top:-4px; right:-4px;
+              background:#dc3545; color:#fff; border-radius:50%;
+              min-width:18px; height:18px; font-size:0.65rem; font-weight:700;
+              align-items:center; justify-content:center; border:2px solid #fff;
+            ">0</span>
+          </a>
+        </li>
+        <!-- ── NOTIFICATION BELL ─────────────────────── -->
+        <li class="nav-item" style="position: relative;">
+          <button id="notif-btn" title="Notifications">
+            <i class="bi bi-bell-fill"></i>
+            <span id="notif-badge">0</span>
+          </button>
+
+          <!-- Dropdown panel (hidden by default) -->
+          <div id="notif-dropdown">
+            <div class="notif-dd-header">
+              <span><i class="bi bi-bell-fill text-danger me-1"></i> Notifications</span>
+              <button id="mark-all-btn">Mark all as read</button>
+            </div>
+            <div id="notif-list">
+              <!-- Populated by JavaScript every few seconds -->
+              <div class="notif-empty">
+                <i class="bi bi-bell-slash"></i>
+                No notifications yet
+              </div>
+            </div>
+            <div class="notif-dd-footer">
+              <a href="{{ url_for('notifications') }}">View all notifications</a>
+            </div>
+          </div>
+        </li>
+        <!-- ────────────────────────────────────────────── -->
+
         <!-- User Dropdown -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle nav-animate" href="#"
              data-bs-toggle="dropdown">
             <i class="bi bi-person-circle me-1"></i>
-            {{ current_user.email.split('@')[0] }}
+            {{ current_user.name.split()[0] if current_user.name else current_user.email.split('@')[0] }}
           </a>
           <ul class="dropdown-menu dropdown-menu-end shadow">
             <li><a class="dropdown-item" href="{{ url_for('inbox') }}">📥 Inbox</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('notifications') }}">🔔 Notifications</a></li>
             <li><a class="dropdown-item" href="{{ url_for('post_lost') }}">⚠️ Post Lost</a></li>
             <li><a class="dropdown-item" href="{{ url_for('post_found') }}">✅ Post Found</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">🚪 Logout</a></li>
           </ul>
         </li>
+
         {% else %}
+
         <!-- Auth Buttons -->
         <li class="nav-item">
-          <a class="btn btn-outline-light btn-sm px-3"
-             href="{{ url_for('login') }}">Login</a>
+          <a class="btn btn-outline-light btn-sm px-3" href="{{ url_for('login') }}">Login</a>
         </li>
         <li class="nav-item">
-          <a class="btn btn-danger btn-sm px-3"
-             href="{{ url_for('register') }}">Register</a>
+          <a class="btn btn-danger btn-sm px-3" href="{{ url_for('register') }}">Register</a>
         </li>
+
         {% endif %}
 
         <!-- Dark Mode -->
@@ -172,6 +386,7 @@
     </div>
   </div>
 </nav>
+<!-- ════════════════════════════════════════════════ -->
 
 
 <!-- Flash Messages -->
@@ -197,7 +412,6 @@
 <footer class="bg-dark text-white pt-5 pb-3">
     <div class="container">
         <div class="row g-4">
-
             <div class="col-md-4">
                 <h5 class="fw-bold">DIU Lost & Found</h5>
                 <p class="small text-white-50">
@@ -210,7 +424,6 @@
                     <a href="mailto:wakilparvez191@gmail.com" class="text-white fs-5"><i class="bi bi-envelope-fill"></i></a>
                 </div>
             </div>
-
             <div class="col-md-4">
                 <h5 class="fw-bold">Quick Links</h5>
                 <ul class="list-unstyled small">
@@ -220,7 +433,6 @@
                     <li><a href="{{ url_for('post_found') }}" class="text-white-50">Post Found</a></li>
                 </ul>
             </div>
-
             <div class="col-md-4">
                 <h5 class="fw-bold">Contact</h5>
                 <p class="small text-white-50 mb-1">📍 Daffodil International University</p>
@@ -228,9 +440,7 @@
                 <p class="small text-white-50">⏰ 9AM – 8PM</p>
             </div>
         </div>
-
         <hr class="border-secondary my-4">
-
         <div class="text-center">
             <small class="text-white-50">
                 © {{ current_year or 2025 }} DIU Lost & Found · All rights reserved
@@ -239,37 +449,210 @@
     </div>
 </footer>
 
-<!-- Chatbot -->
-<div id="chatbot">
-    <button onclick="toggleChat()" class="btn btn-primary rounded-circle">🧠</button>
-    <div id="chatbox">
-        <div id="chatlog" style="height: 330px; overflow-y: auto;"></div>
-        <input type="text" id="userInput" class="form-control mt-2"
-               placeholder="Type here..."
-               onkeydown="if(event.key==='Enter') sendMessage()">
-    </div>
-</div>
-
-<!-- Scripts -->
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    const body = document.getElementById('page-body');
-    const chatbox = document.getElementById('chatbox');
+/* ══════════════════════════════════════════════════════════════
+   DARK MODE & CHAT
+   ══════════════════════════════════════════════════════════════ */
+const body    = document.getElementById('page-body');
+const chatbox = document.getElementById('chatbox');
 
-    if (localStorage.getItem('theme') === 'dark') {
-        body.classList.add('dark-mode');
-        chatbox.classList.add('dark-mode');
+if (localStorage.getItem('theme') === 'dark') {
+    body.classList.add('dark-mode');
+    chatbox.classList.add('dark-mode');
+}
+
+document.getElementById('toggle-dark')?.addEventListener('click', () => {
+    body.classList.toggle('dark-mode');
+    chatbox.classList.toggle('dark-mode');
+    localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+});
+
+function toggleChat() {
+    chatbox.style.display = chatbox.style.display === 'none' ? 'block' : 'none';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NOTIFICATION BELL SYSTEM
+   Only active when a user is logged in (bell element exists).
+   ══════════════════════════════════════════════════════════════ */
+const notifBtn      = document.getElementById('notif-btn');
+const notifDropdown = document.getElementById('notif-dropdown');
+const notifBadge    = document.getElementById('notif-badge');
+const notifList     = document.getElementById('notif-list');
+const markAllBtn    = document.getElementById('mark-all-btn');
+
+// Icon bubble CSS class mapped to notification type
+const BUBBLE_CLASS = {
+    message:   'bubble-message',
+    comment:   'bubble-comment',
+    lost_post: 'bubble-lost',
+    found_post:'bubble-found',
+    story:     'bubble-story',
+    general:   'bubble-general',
+};
+
+// Bootstrap Icons glyph for each type
+const BUBBLE_ICON = {
+    message:   'bi-envelope-fill',
+    comment:   'bi-chat-dots-fill',
+    lost_post: 'bi-exclamation-triangle-fill',
+    found_post:'bi-check-circle-fill',
+    story:     'bi-book-fill',
+    general:   'bi-bell-fill',
+};
+
+/* ── Poll unread notification count every 5 seconds ── */
+function pollUnreadCount() {
+    if (!notifBadge) return;
+    fetch('/notifications/count')
+        .then(r => r.json())
+        .then(data => {
+            const count = data.count || 0;
+            if (count > 0) {
+                notifBadge.textContent = count > 99 ? '99+' : count;
+                notifBadge.style.display = 'block';
+            } else {
+                notifBadge.style.display = 'none';
+            }
+        })
+        .catch(() => {});
+}
+
+/* ── Poll unread message count every 5 seconds ── */
+const msgBadge = document.getElementById('msg-badge');
+function pollMsgCount() {
+    if (!msgBadge) return;
+    fetch('/messages/unread-count')
+        .then(r => r.json())
+        .then(data => {
+            const count = data.count || 0;
+            if (count > 0) {
+                msgBadge.textContent = count > 99 ? '99+' : count;
+                msgBadge.style.display = 'flex';
+            } else {
+                msgBadge.style.display = 'none';
+            }
+        })
+        .catch(() => {});
+}
+pollMsgCount();
+setInterval(pollMsgCount, 5000);
+
+/* ── Render notifications into the dropdown list ── */
+function renderNotifications(items) {
+    if (!notifList) return;
+
+    if (!items.length) {
+        notifList.innerHTML = `
+            <div class="notif-empty">
+                <i class="bi bi-bell-slash"></i>
+                You're all caught up!
+            </div>`;
+        return;
     }
 
-    document.getElementById('toggle-dark')?.addEventListener('click', () => {
-        body.classList.toggle('dark-mode');
-        chatbox.classList.toggle('dark-mode');
-        localStorage.setItem('theme', body.classList.contains('dark-mode') ? 'dark' : 'light');
+    notifList.innerHTML = items.map(n => {
+        const bubbleCls  = BUBBLE_CLASS[n.type]  || 'bubble-general';
+        const iconCls    = BUBBLE_ICON[n.type]   || 'bi-bell-fill';
+        const unreadCls  = n.is_read ? '' : 'unread';
+        const dotHtml    = n.is_read ? '' : '<div class="notif-new-dot"></div>';
+
+        return `
+        <div class="notif-row ${unreadCls}" data-id="${n.id}" data-link="${n.link}">
+            <div class="notif-icon-bubble ${bubbleCls}">
+                <i class="bi ${iconCls}"></i>
+            </div>
+            <div class="notif-row-body">
+                <div class="notif-row-msg">${escHtml(n.message)}</div>
+                <div class="notif-row-time">${n.created_at}</div>
+            </div>
+            ${dotHtml}
+        </div>`;
+    }).join('');
+
+    // Click handler: mark as read then navigate to the linked page
+    notifList.querySelectorAll('.notif-row').forEach(row => {
+        row.addEventListener('click', () => {
+            const id   = row.dataset.id;
+            const link = row.dataset.link;
+            fetch(`/notifications/mark-read/${id}`, { method: 'POST' })
+                .then(() => { window.location.href = link; })
+                .catch(() => { window.location.href = link; });
+        });
     });
+}
 
-    function toggleChat() {
-        chatbox.style.display = chatbox.style.display === 'none' ? 'block' : 'none';
+/* ── Fetch and show the dropdown ── */
+function openDropdown() {
+    if (!notifDropdown) return;
+    notifList.innerHTML = `
+        <div class="notif-empty">
+            <i class="bi bi-hourglass-split" style="font-size:1.4rem;"></i>
+            Loading…
+        </div>`;
+    notifDropdown.style.display = 'flex';
+
+    fetch('/notifications/recent')
+        .then(r => r.json())
+        .then(renderNotifications)
+        .catch(() => {
+            notifList.innerHTML = `<div class="notif-empty">Could not load notifications.</div>`;
+        });
+}
+
+/* ── Toggle dropdown open/closed ── */
+if (notifBtn) {
+    notifBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (notifDropdown.style.display === 'flex') {
+            notifDropdown.style.display = 'none';
+        } else {
+            openDropdown();
+        }
+    });
+}
+
+/* ── Close when clicking outside ── */
+document.addEventListener('click', (e) => {
+    if (notifDropdown && !notifBtn?.contains(e.target) && !notifDropdown.contains(e.target)) {
+        notifDropdown.style.display = 'none';
     }
+});
+
+/* ── Mark all as read ── */
+if (markAllBtn) {
+    markAllBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fetch('/notifications/mark-all-read', { method: 'POST' })
+            .then(() => {
+                notifBadge.style.display = 'none';
+                // Remove unread styling from all rows
+                notifList.querySelectorAll('.notif-row.unread').forEach(row => {
+                    row.classList.remove('unread');
+                    row.querySelector('.notif-new-dot')?.remove();
+                });
+            });
+    });
+}
+
+/* ── Escape HTML to prevent XSS ── */
+function escHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+/* ── Start polling on page load (if logged in) ── */
+if (notifBadge) {
+    pollUnreadCount();
+    setInterval(pollUnreadCount, 5000); // refresh badge every 5 s
+}
+/* ══════════════════════════════════════════════════════════════ */
 </script>
 
 </body>
