@@ -1,36 +1,112 @@
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block content %}
-<div class="container mt-5" style="max-width: 500px;">
-    <h2 class="mb-4 text-center">Sign In to Your Account</h2>
+<style>
+.auth-page {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #f0f2f5 0%, #e3eaf6 100%);
+  padding: 24px 16px;
+}
+body.dark .auth-page { background: linear-gradient(135deg,#18191a,#242526); }
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="alert alert-warning" role="alert">
-          {% for message in messages %}
-            <div>{{ message }}</div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
+.auth-card {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+  padding: 40px 40px 32px; width: 100%; max-width: 420px;
+}
+body.dark .auth-card { background: #242526; }
 
-    <form action="{{ url_for('login') }}" method="POST">
-        <div class="mb-3">
-            <label for="email" class="form-label">Email address</label>
-            <input type="text" id="email" name="email" class="form-control" required>
-        </div>
+.auth-logo {
+  text-align: center; margin-bottom: 8px;
+}
+.auth-logo i { font-size: 3rem; color: #0866ff; }
+.auth-title {
+  text-align: center; font-weight: 900; font-size: 2rem;
+  color: #0866ff; letter-spacing: -0.5px; margin-bottom: 4px;
+}
+.auth-subtitle {
+  text-align: center; color: #65676b; font-size: 0.95rem; margin-bottom: 28px;
+}
+body.dark .auth-subtitle { color: #b0b3b8; }
 
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" id="password" name="password" class="form-control" required>
-        </div>
+.auth-input {
+  width: 100%; border: 1.5px solid #ccd0d5;
+  border-radius: 8px; padding: 14px 16px;
+  font-size: 0.95rem; outline: none; transition: border .2s;
+  background: #fff; color: #050505; margin-bottom: 12px; display: block;
+}
+body.dark .auth-input { background: #3a3b3c; border-color: #3a3b3c; color: #e4e6eb; }
+.auth-input:focus { border-color: #0866ff; box-shadow: 0 0 0 3px rgba(8,102,255,0.12); }
 
-        <button type="submit" class="btn btn-primary w-100">Login</button>
+.auth-error-box {
+  background: #fff2f2; border: 1px solid #ffb3b3;
+  border-radius: 8px; padding: 12px 16px;
+  color: #d32f2f; font-size: 0.87rem; margin-bottom: 14px;
+}
+
+.login-btn {
+  width: 100%; background: #0866ff; color: #fff; border: none;
+  border-radius: 8px; padding: 14px; font-size: 1.05rem;
+  font-weight: 700; cursor: pointer; transition: background .18s;
+  margin-top: 4px;
+}
+.login-btn:hover { background: #0654d4; }
+
+.forgot-link {
+  display: block; text-align: center; margin: 14px 0;
+  color: #0866ff; font-size: 0.88rem; text-decoration: none;
+}
+.forgot-link:hover { text-decoration: underline; }
+
+.auth-divider {
+  border: none; border-top: 1px solid #e4e6eb; margin: 20px 0;
+}
+body.dark .auth-divider { border-color: #3a3b3c; }
+
+.register-btn {
+  display: block; text-align: center;
+  background: #00a400; color: #fff; border: none;
+  border-radius: 8px; padding: 14px; font-size: 1rem;
+  font-weight: 700; text-decoration: none; cursor: pointer;
+  transition: background .18s;
+}
+.register-btn:hover { background: #008000; color: #fff; }
+
+.remember-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.remember-row label { font-size: 0.88rem; color: #65676b; cursor: pointer; }
+body.dark .remember-row label { color: #b0b3b8; }
+</style>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo"><i class="bi bi-search-heart-fill"></i></div>
+    <div class="auth-title">DIU Lost &amp; Found</div>
+    <div class="auth-subtitle">Sign in to your account</div>
+
+    {% if error %}
+    <div class="auth-error-box">
+      <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}" novalidate>
+      <input type="email" name="email" class="auth-input"
+             placeholder="Email address"
+             value="{{ request.form.get('email','') }}" required autofocus>
+      <input type="password" name="password" class="auth-input"
+             placeholder="Password" required>
+
+      <div class="remember-row">
+        <input type="checkbox" id="remember" name="remember">
+        <label for="remember">Keep me logged in</label>
+      </div>
+
+      <button type="submit" class="login-btn">Log In</button>
     </form>
 
-    <p class="mt-3 text-center">
-        Don't have an account?
-        <a href="{{ url_for('register') }}">Register here</a>.
-    </p>
+    <a href="#" class="forgot-link">Forgot password?</a>
+    <hr class="auth-divider">
+    <a href="{{ url_for('register') }}" class="register-btn">Create new account</a>
+  </div>
 </div>
 {% endblock %}
