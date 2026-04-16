@@ -85,7 +85,7 @@ No Git? Download ZIP directly and extract.
 
 ### Step 2: Create Virtual Environment
 ⚠️ Important for Flask projects
-
+bash
 Windows:
 python -m venv venv
 venv\Scripts\activate
@@ -97,9 +97,10 @@ source venv/bin/activate
 ✅ After activation, you will see (venv) in your terminal.
 
 ### Step 3: Install Dependencies
+bash
 pip install -r requirements.txt
 If requirements.txt is missing, install manually:
-
+bash
 pip install Flask==3.0.3
 pip install Flask-SQLAlchemy==3.1.1
 pip install Flask-Login==0.6.3
@@ -109,12 +110,13 @@ pip install python-dotenv==1.0.1
 pip install simple-websocket
 
 ### Step 4: Create Database
+bash
 python create_db.py
 Expected output:
 
 Database and tables created/migrated successfully.
 ### Step 5: Run the Application
-
+bash
 python app.py
 Expected output:
 
@@ -137,14 +139,15 @@ Click Sign Up
 Press Ctrl + C in the terminal.
 
 To start again later:
-
+bash
 venv\Scripts\activate   # Windows
 # OR
 source venv/bin/activate  # Mac/Linux
-
+bash
 python app.py
 🚀 Quick Installation (One by One)
-Windows:
+# Windows:
+bash
 git clone https://github.com/yourusername/DIU-Lost-And-Found.git
 cd DIU-Lost-And-Found
 python -m venv venv
@@ -152,8 +155,8 @@ venv\Scripts\activate
 pip install -r requirements.txt
 python create_db.py
 python app.py
-Mac / Linux:
-
+# Mac / Linux:
+bash
 git clone https://github.com/yourusername/DIU-Lost-And-Found.git
 cd DIU-Lost-And-Found
 python3 -m venv venv
