@@ -79,7 +79,7 @@ markdown
 ---
 
 ### Step 1: Download the Project
-git clone https://github.com/yourusername/DIU-Lost-And-Found.git
+git clone https://github.com/wakilahmedparvez/DIU-LOST-FOUND.git
 cd DIU-Lost-And-Found
 No Git? Download ZIP directly and extract.
 
