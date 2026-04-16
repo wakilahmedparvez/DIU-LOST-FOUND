@@ -148,7 +148,7 @@ python app.py
 🚀 Quick Installation (One by One)
 # Windows:
 bash
-git clone https://github.com/yourusername/DIU-Lost-And-Found.git
+git clone https://github.com/wakilahmedparvez/DIU-LOST-FOUND
 cd DIU-Lost-And-Found
 python -m venv venv
 venv\Scripts\activate
@@ -157,7 +157,7 @@ python create_db.py
 python app.py
 # Mac / Linux:
 bash
-git clone https://github.com/yourusername/DIU-Lost-And-Found.git
+git clone https://github.com/wakilahmedparvez/DIU-LOST-FOUND
 cd DIU-Lost-And-Found
 python3 -m venv venv
 source venv/bin/activate
