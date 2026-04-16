@@ -65,7 +65,7 @@ The **DIU Lost & Found Management System** is a web-based platform designed spec
 | SQLAlchemy ORM | Object-relational mapping |
 
 ---
-📋 README.md-এর জন্য Installation Process (কপি করার জন্য):
+📋 README.md- Installation Process 
 markdown
 ## 🔧 Installation & Setup Guide
 
